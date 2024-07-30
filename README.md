@@ -38,8 +38,13 @@ s
 
 Connect camera and printer, set the correct printer as the default printer. (Settings > Printers > ... "Use Printer by Default")
 
-## Start application
+## Run application
+
+Make run_photobooth.sh executable
+```
+chmod +x run_photobooth.sh
+```
 
 ```
-python3 main.py
+./run_photobooth.sh
 ```
