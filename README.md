@@ -15,6 +15,7 @@ Clone project.
 Create Python virtual environment.
 
 ```
+sudo apt install python3-venv
 cd photobooth_python_2024version
 python3 -m venv venv
 ```
@@ -29,10 +30,10 @@ pip install -r requirements.txt
 Install PyQt5 requirements:
 
 ```
-sudo apt-get install libxcb-xinerama0
-sudo apt-get install libxkbcommon-x11-0
+sudo apt install libxcb-xinerama0
+sudo apt install libxkbcommon-x11-0
 ```
-
+s
 ## Hardware:
 
 Connect camera and printer.
