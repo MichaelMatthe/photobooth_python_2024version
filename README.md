@@ -36,7 +36,7 @@ sudo apt install libxkbcommon-x11-0
 s
 ## Hardware:
 
-Connect camera and printer.
+Connect camera and printer, set the correct printer as the default printer. (Settings > Printers > ... "Use Printer by Default")
 
 ## Start application
 

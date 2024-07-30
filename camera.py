@@ -28,17 +28,18 @@ def take_picture(test_mode=False):
     if test_mode:
         print("Test Mode")
         return
-    
+
     kill_gphoto2_processes()
     clear_images_on_camera()
     image_name = capture_image_and_download()
     return image_name
 
+
 def capture_image_and_download():
     try:
         result = subprocess.run(
             ["gphoto2", "--capture-image-and-download"], capture_output=True, text=True)
-        
+
         base_path = os.path.dirname(os.path.abspath(__file__))
         dest_dir = base_path + "/images"
         source_file = "capt0000.jpg"
@@ -65,15 +66,13 @@ def capture_image_and_download():
                 except ValueError:
                     pass
 
-
-
         # Determine the new file name
         new_file_name = f"{base_name}{max_num + 1:04d}{extension}"
         new_file_path = os.path.join(dest_dir, new_file_name)
 
         # Move and rename the file
         shutil.move(source_file, new_file_path)
-        return new_file_path 
+        return new_file_path
     except subprocess.CalledProcessError:
         print("process error")
     except Exception as e:
