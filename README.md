@@ -26,6 +26,13 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+Install PyQt5 requirements:
+
+```
+sudo apt-get install libxcb-xinerama0
+sudo apt-get install libxkbcommon-x11-0
+```
+
 ## Hardware:
 
 Connect camera and printer.

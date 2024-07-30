@@ -73,11 +73,11 @@ def capture_image_and_download():
 
         # Move and rename the file
         shutil.move(source_file, new_file_path)
-        print(f"Moved and renamed {source_file} to {new_file_path}")
         return new_file_path 
     except subprocess.CalledProcessError:
         print("process error")
     except Exception as e:
+        # TODO handle no picture taken error!
         print(f"An error occurred: {e}")
 
 
@@ -85,12 +85,7 @@ def clear_images_on_camera():
     try:
         result = subprocess.run(['gphoto2', '--folder', "/store_00020001/DCIM/100CANON",
                                  "-R", "--delete-all-files"], capture_output=True, text=True)
-        print(result)
     except subprocess.CalledProcessError:
         print("process error")
     except Exception as e:
         print(f"An error occurred: {e}")
-
-
-if __name__ == '__main__':
-    print(os.path.dirname(os.path.abspath(__file__)))

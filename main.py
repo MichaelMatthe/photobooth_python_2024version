@@ -2,8 +2,10 @@ import camera
 import printer
 
 import sys
+import os
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, QVBoxLayout, QFileDialog
 from PyQt5.QtGui import QPixmap, QScreen
+
 
 class ImageApp(QWidget):
     def __init__(self):
@@ -40,7 +42,7 @@ class ImageApp(QWidget):
         if file_name:
             # Load and display the image in the label
             pixmap = QPixmap(file_name)
-            
+
             # Get the screen size
             screen = QScreen.availableGeometry(QApplication.primaryScreen())
             screen_width = screen.width()
@@ -54,10 +56,14 @@ class ImageApp(QWidget):
             pixmap = pixmap.scaled(target_size, target_size, aspectRatioMode=1)
 
             self.image_label.setPixmap(pixmap)
-            self.image_label.setScaledContents(True)  # Scale the image to fit the label size
+            # Scale the image to fit the label size
+            self.image_label.setScaledContents(True)
             self.image_label.adjustSize()  # Adjust the size of the label to fit the image
 
+
 if __name__ == '__main__':
+    os.environ["XDG_SESSION_TYPE"] = "xcb"
+
     # Create the application object
     app = QApplication(sys.argv)
 
