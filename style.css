@@ -1,0 +1,26 @@
+QWidget {
+    background-color: lightblue;
+}
+
+QPushButton {
+    background-color: #800000;  /* Bordeaux red */
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 15px;
+    padding: 10px 20px;
+}
+
+QPushButton:hover {
+    background-color: #a00000;  /* Slightly lighter red for hover effect */
+}
+
+QPushButton:pressed {
+    background-color: #600000;  /* Slightly darker red for pressed effect */
+}
+
+QLabel {
+    color: white;
+    font-size: x-large;
+    font-weight: bold;
+}

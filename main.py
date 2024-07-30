@@ -3,11 +3,13 @@ import printer
 
 import sys
 import os
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, QVBoxLayout, QFileDialog
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, QVBoxLayout, QHBoxLayout, QDialog
 from PyQt5.QtGui import QPixmap, QScreen
+from PyQt5.QtCore import Qt
 
 
-class ImageApp(QWidget):
+class PhotoBoothApp(QWidget):
+
     def __init__(self):
         super().__init__()
 
@@ -16,49 +18,71 @@ class ImageApp(QWidget):
 
     def initUI(self):
         # Set window title
-        self.setWindowTitle('Load Image on Button Click')
+        self.setWindowTitle('Photobooth')
 
         # Set up the layout
-        self.layout = QVBoxLayout()
+        main_layout = QVBoxLayout()
 
-        # Create a button and connect it to the load_image method
-        self.button = QPushButton('Load Image', self)
-        self.button.clicked.connect(self.load_image)
-        self.layout.addWidget(self.button)
+        row1 = QWidget()
+        row1_layout = QHBoxLayout()
+        title_lable = QLabel('Photobooth')
+        title_lable.setAlignment(Qt.AlignCenter)
+        row1_layout.addWidget(title_lable)
+        row1.setLayout(row1_layout)
+        main_layout.addWidget(row1, stretch=1)
 
-        # Create a label to display the image
+        row2 = QWidget()
+        row2_layout = QHBoxLayout()
+
+        button_col = QWidget()
+        button_col_layout = QVBoxLayout()
+        picture_button = QPushButton('Bild machen')
+        picture_button.clicked.connect(self.take_picture)
+        button_col_layout.addWidget(picture_button)
+        button_col_layout.addWidget(QPushButton('Drucken'))
+        mailing_list_button = QPushButton('Mailing List')
+        mailing_list_button.clicked.connect(self.mailing_list_dialog)
+        button_col_layout.addWidget(mailing_list_button)
+        button_col.setLayout(button_col_layout)
+        row2_layout.addWidget(button_col, stretch=1)
+
         self.image_label = QLabel(self)
-        self.layout.addWidget(self.image_label)
+        self.image_label.setAlignment(Qt.AlignCenter)
+        row2_layout.addWidget(self.image_label, stretch=7)
+        row2.setLayout(row2_layout)
+        main_layout.addWidget(row2, stretch=7)
 
-        # Set the layout for the main window
-        self.setLayout(self.layout)
+        self.setLayout(main_layout)
 
-        # Set window size
-        self.resize(400, 300)
+        # Get the screen size
+        screen = QScreen.availableGeometry(QApplication.primaryScreen())
+        self.screen_width = screen.width()
+        self.screen_height = screen.height()
 
-    def load_image(self):
-        # Open a file dialog to select an image file
+        self.resize(1280, 720)
+        # TODO uncomment
+        #self.resize(self.screen_width, self.screen_height)
+
+        # Apply the stylesheet
+        with open('style.css', 'r') as f:
+            self.setStyleSheet(f.read())
+
+    def take_picture(self):
         file_name = camera.take_picture()
         if file_name:
             # Load and display the image in the label
             pixmap = QPixmap(file_name)
 
-            # Get the screen size
-            screen = QScreen.availableGeometry(QApplication.primaryScreen())
-            screen_width = screen.width()
-            screen_height = screen.height()
-
             # Calculate the target size (80% of the larger dimension)
-            scale_factor = 0.8
-            target_size = int(min(screen_width, screen_height) * scale_factor)
-
+            scale_factor = 0.95
             # Scale the pixmap to fit 80% of the screen's larger dimension
-            pixmap = pixmap.scaled(target_size, target_size, aspectRatioMode=1)
-
+            pixmap = pixmap.scaled(int(self.image_label.width() * scale_factor), int(self.image_label.height() * scale_factor), aspectRatioMode=1)
             self.image_label.setPixmap(pixmap)
-            # Scale the image to fit the label size
-            self.image_label.setScaledContents(True)
-            self.image_label.adjustSize()  # Adjust the size of the label to fit the image
+
+    def mailing_list_dialog(self):
+        dlg = QDialog(self)
+        dlg.setWindowTitle("HELLO!")
+        dlg.exec()
 
 
 if __name__ == '__main__':
@@ -68,10 +92,11 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
 
     # Create an instance of the ImageApp
-    window = ImageApp()
+    window = PhotoBoothApp()
 
     # Show the window
     window.show()
+    #window.showFullScreen()
 
     # Run the application's event loop
     sys.exit(app.exec_())
