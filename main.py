@@ -1,108 +1,112 @@
 import camera
 import printer
-
 import sys
 import os
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, QVBoxLayout, QHBoxLayout, QStackedLayout, QDialog, QSizePolicy
+from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton, QLabel, QVBoxLayout,
+                             QHBoxLayout, QStackedLayout, QDialog, QSizePolicy)
 from PyQt5.QtGui import QPixmap, QScreen, QFont, QPainter, QPen, QColor
 from PyQt5.QtCore import Qt, QTime, QTimer, pyqtSignal, QThreadPool, QRunnable, QObject
 
 
 class PhotoBoothApp(QWidget):
-
     def __init__(self):
         super().__init__()
-
-        # Initialize the UI
         self.initUI()
+        self.thread_pool = QThreadPool()
 
     def initUI(self):
-        # Set window title
         self.setWindowTitle('Photobooth')
-
-        # Set up the layout
         main_layout = QVBoxLayout()
 
-        # ROW 1
-        row1 = QWidget()
-        row1_layout = QHBoxLayout()
-        title_lable = QLabel('Photobooth')
-        title_lable.setAlignment(Qt.AlignCenter)
-        row1_layout.addWidget(title_lable)
-        row1.setLayout(row1_layout)
-        main_layout.addWidget(row1, stretch=1)
+        main_layout.addWidget(self.create_title_label(), stretch=1)
+        main_layout.addLayout(self.create_main_layout(), stretch=7)
 
-        # ROW 2
-        row2 = QWidget()
-        row2_layout = QHBoxLayout()
-        row2_layout.setAlignment(Qt.AlignCenter)
+        self.setLayout(main_layout)
+        self.resize_app()
+        self.apply_stylesheet()
 
-        self.countdown_widget = CountdownWidget()
-        self.countdown_widget.countdown_finished.connect(
-            self.on_countdown_finished)
+    def create_title_label(self):
+        title_label = QLabel('Photobooth')
+        title_label.setAlignment(Qt.AlignCenter)
+        title_label.setFont(QFont('Arial', 24))
+        return title_label
 
+    def create_main_layout(self):
+        row_layout = QHBoxLayout()
+        row_layout.setAlignment(Qt.AlignCenter)
+
+        button_col_layout = self.create_button_column()
+        self.image_widget_layout = self.create_image_layout()
+
+        row_layout.addLayout(button_col_layout, stretch=1)
+        row_layout.addLayout(self.image_widget_layout, stretch=7)
+
+        return row_layout
+
+    def create_button_column(self):
         button_col_layout = QVBoxLayout()
-
         picture_button = QPushButton('Bild machen')
         picture_button.clicked.connect(self.on_picture_button_click)
         button_col_layout.addWidget(picture_button)
 
-        button_col_layout.addWidget(QPushButton('Drucken'))
+        print_button = QPushButton('Drucken')
+        print_button.clicked.connect(self.print_current_image)
+        button_col_layout.addWidget(print_button)
 
         mailing_list_button = QPushButton('Mailing List')
         mailing_list_button.clicked.connect(self.mailing_list_dialog)
         button_col_layout.addWidget(mailing_list_button)
 
-        # Image frame
-        self.image_widget_layout = QStackedLayout()
-        self.image_widget_layout.setAlignment(self.countdown_widget, Qt.AlignCenter)
+        return button_col_layout
+
+    def create_image_layout(self):
+        image_layout = QStackedLayout()
+        initial_label = QLabel(self)
+
+        self.countdown_widget = CountdownWidget()
+        self.countdown_widget.countdown_finished.connect(
+            self.on_countdown_finished)
 
         self.image_label = QLabel(self)
-        self.image_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.image_label.setSizePolicy(
+            QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.image_label.setAlignment(Qt.AlignCenter)
 
-        self.white_image_placeholder = QLabel(self)
-        self.white_image_placeholder.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.white_image_placeholder.setText("Loading")
+        self.white_image_placeholder = QLabel("Loading", self)
+        self.white_image_placeholder.setSizePolicy(
+            QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.white_image_placeholder.setAlignment(Qt.AlignCenter)
-        self.white_image_placeholder.setStyleSheet("background-color: lightblue;")
-
-        self.image_widget_layout.addWidget(self.white_image_placeholder)
+        self.white_image_placeholder.setStyleSheet(
+            "background-color: lightblue;")
 
         self.countdown_widget_wrapper = QWidget()
-        self.countdown_widget_wrapper_layout = QVBoxLayout()
-        self.countdown_widget_wrapper_layout.setAlignment(Qt.AlignCenter)
-        self.countdown_widget_wrapper.setLayout(self.countdown_widget_wrapper_layout)
-        self.countdown_widget_wrapper_layout.addWidget(self.countdown_widget)
+        countdown_widget_wrapper_layout = QVBoxLayout()
+        countdown_widget_wrapper_layout.setAlignment(Qt.AlignCenter)
+        self.countdown_widget_wrapper.setLayout(
+            countdown_widget_wrapper_layout)
+        countdown_widget_wrapper_layout.addWidget(self.countdown_widget)
 
-        self.image_widget_layout.addWidget(self.countdown_widget_wrapper)
-        self.image_widget_layout.addWidget(self.image_label)
+        image_layout.addWidget(initial_label)
+        image_layout.addWidget(self.white_image_placeholder)
+        image_layout.addWidget(self.countdown_widget_wrapper)
+        image_layout.addWidget(self.image_label)
 
-        row2.setLayout(row2_layout)
-        row2_layout.addLayout(button_col_layout, stretch=1)
-        row2_layout.addLayout(self.image_widget_layout, stretch=7)
+        return image_layout
 
-        main_layout.addWidget(row2, stretch=7)
-
-        self.setLayout(main_layout)
-
-        # Get the screen size
+    def resize_app(self):
         screen = QScreen.availableGeometry(QApplication.primaryScreen())
-        self.screen_width = screen.width()
-        self.screen_height = screen.height()
-
         self.resize(1280, 720)
-        # TODO uncomment
-        # self.resize(self.screen_width, self.screen_height)
 
-        # Apply the stylesheet
-        with open('style.css', 'r') as f:
-            self.setStyleSheet(f.read())
-
-        self.thread_pool = QThreadPool()
+    def apply_stylesheet(self):
+        try:
+            with open('style.css', 'r') as f:
+                self.setStyleSheet(f.read())
+        except FileNotFoundError:
+            print("Stylesheet file 'style.css' not found.")
 
     def on_picture_button_click(self):
-        self.image_widget_layout.setCurrentWidget(self.countdown_widget_wrapper)
+        self.image_widget_layout.setCurrentWidget(
+            self.countdown_widget_wrapper)
         self.countdown_widget.start_countdown()
 
     def on_countdown_finished(self):
@@ -114,20 +118,19 @@ class PhotoBoothApp(QWidget):
 
     def display_image(self, image_path):
         if image_path:
-            # Load and display the image in the label
-            pixmap = QPixmap(image_path)
-
-            pixmap = pixmap.scaled(int(1080 * 0.95), int(587 * 0.95), aspectRatioMode=1)
+            pixmap = QPixmap(image_path).scaled(
+                int(1080 * 0.95), int(587 * 0.95), Qt.KeepAspectRatio)
             self.image_label.setPixmap(pixmap)
             self.image_widget_layout.setCurrentWidget(self.image_label)
-            return image_path
 
-    def print(self, image_path):
-        printer.print(image_path)
+    def print_current_image(self):
+        image_path = self.image_label.pixmap().cacheKey()
+        if image_path:
+            printer.print(image_path)
 
     def mailing_list_dialog(self):
         dlg = QDialog(self)
-        dlg.setWindowTitle("HELLO!")
+        dlg.setWindowTitle("Mailing List")
         dlg.exec()
 
 
@@ -136,14 +139,17 @@ class TakePictureSignals(QObject):
 
 
 class TakePictureTask(QRunnable):
-
     def __init__(self, signals):
         super(TakePictureTask, self).__init__()
         self.signals = signals
 
     def run(self):
-        file_name = camera.take_picture()
-        self.signals.task_finished.emit(file_name)
+        try:
+            file_name = camera.take_picture()
+            self.signals.task_finished.emit(file_name)
+        except Exception as e:
+            print(f"Error taking picture: {e}")
+            self.signals.task_finished.emit("")
 
 
 class CountdownWidget(QWidget):
@@ -151,15 +157,13 @@ class CountdownWidget(QWidget):
 
     def __init__(self):
         super().__init__()
-        self.total_seconds = 2
+        self.total_seconds = 4
         self.update_interval = 1000 // 60  # 60 updates per second
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_countdown)
 
         self.elapsed_time = QTime()
-        self.elapsed_time.start()
-
         self.setFixedSize(300, 300)
 
     def start_countdown(self):
@@ -182,7 +186,6 @@ class CountdownWidget(QWidget):
         radius = min(rect.width(), rect.height()) // 2 - 10
 
         painter.setPen(QPen(Qt.black, 2))
-        # Set the initial circle background to black
         painter.setBrush(QColor(0, 0, 0))
         painter.drawEllipse(center, radius, radius)
 
@@ -193,7 +196,6 @@ class CountdownWidget(QWidget):
             painter.drawPie(rect.adjusted(10, 10, -10, -10),
                             90 * 16, -angle * 16)
 
-        # Draw remaining seconds in the center with a white number and black outline
         remaining_seconds = max(0, self.total_seconds - elapsed_ms // 1000)
         painter.setFont(QFont('Arial', 72, QFont.Bold))
         painter.setPen(QPen(Qt.black, 8))
@@ -205,15 +207,7 @@ class CountdownWidget(QWidget):
 if __name__ == '__main__':
     os.environ["XDG_SESSION_TYPE"] = "xcb"
 
-    # Create the application object
     app = QApplication(sys.argv)
-
-    # Create an instance of the ImageApp
     window = PhotoBoothApp()
-
-    # Show the window
     window.show()
-    # window.showFullScreen()
-
-    # Run the application's event loop
     sys.exit(app.exec_())
