@@ -1,11 +1,14 @@
 import camera
 import printer
 import sys
+import re
 import os
 from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton, QLabel, QVBoxLayout,
-                             QHBoxLayout, QStackedLayout, QDialog, QSizePolicy)
+                             QHBoxLayout, QStackedLayout, QDialog, QSizePolicy, 
+                             QLineEdit, QMessageBox)
 from PyQt5.QtGui import QPixmap, QScreen, QFont, QPainter, QPen, QColor, QFontDatabase
-from PyQt5.QtCore import Qt, QTime, QTimer, pyqtSignal, QThreadPool, QRunnable, QObject, QSize, QRect
+from PyQt5.QtCore import (Qt, QTime, QTimer, pyqtSignal, QThreadPool, QRunnable, 
+                          QObject, QSize, QRect)
 
 
 class PhotoBoothApp(QWidget):
@@ -36,6 +39,7 @@ class PhotoBoothApp(QWidget):
 
     def create_title_label(self):
         title_label = QLabel('Photobooth')
+        title_label.setObjectName('titleLable')
         title_label.setAlignment(Qt.AlignCenter)
         title_label.setFont(QFont('Arial', 24))
         return title_label
@@ -63,7 +67,7 @@ class PhotoBoothApp(QWidget):
         button_col_layout.addWidget(print_button)
 
         mailing_list_button = QPushButton('Mailing List')
-        mailing_list_button.clicked.connect(self.mailing_list_dialog)
+        mailing_list_button.clicked.connect(self.show_email_dialog)
         button_col_layout.addWidget(mailing_list_button)
 
         return button_col_layout
@@ -157,10 +161,19 @@ class PhotoBoothApp(QWidget):
         if image_path:
             printer.print(image_path)
 
-    def mailing_list_dialog(self):
-        dlg = QDialog(self)
-        dlg.setWindowTitle("Mailing List")
-        dlg.exec()
+    def show_email_dialog(self):
+        dialog = EmailDialog(self)
+        if dialog.exec_() == QDialog.Accepted:
+            email = dialog.get_email_address()
+            if email:
+                QMessageBox.information(self, 'E-Mail Adresse', f'E-Mail Adresse hinzugefügt: {email}')
+                try:
+                    # Open the file in append mode. Create the file if it doesn't exist.
+                    with open('email_adressen.txt', 'a') as file:
+                        # Write the email address followed by a newline
+                        file.write(email + '\n')
+                except Exception as e:
+                    print(f"An error occurred: {e}")
 
 
 class TakePictureSignals(QObject):
@@ -231,6 +244,49 @@ class CountdownWidget(QWidget):
         painter.setPen(QPen(Qt.black, 8))
         painter.drawText(rect, Qt.AlignCenter, str(remaining_seconds))
 
+
+class EmailDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle('E-Mail Adresse für Fotoalbum')
+        self.setGeometry(100, 100, 300, 150)
+        
+        self.email_address = None
+        
+        self.init_ui()
+        
+    def init_ui(self):
+        layout = QVBoxLayout()
+        
+        self.label = QLabel('E-Mail Adresse angeben, um Link \nzum Fotoalbum zu erhalten:', self)
+        layout.addWidget(self.label)
+        
+        self.email_input = QLineEdit(self)
+        self.email_input.setPlaceholderText('E-Mail Adresse')
+        layout.addWidget(self.email_input)
+        
+        self.submit_button = QPushButton('Hinzufügen', self)
+        self.submit_button.clicked.connect(self.on_submit)
+        layout.addWidget(self.submit_button)
+        
+        self.setLayout(layout)
+        
+    def on_submit(self):
+        email = self.email_input.text()
+        
+        if self.is_valid_email(email):
+            self.email_address = email
+            self.accept()  # Close dialog with accept status
+        else:
+            QMessageBox.warning(self, 'Ungültige E-Mail-Adresse', 'Bitte gültige E-Mail Adresse angeben.')
+
+    def is_valid_email(self, email):
+        # Simple regex for email validation
+        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        return re.match(pattern, email) is not None
+
+    def get_email_address(self):
+        return self.email_address
 
 if __name__ == '__main__':
     os.environ["XDG_SESSION_TYPE"] = "xcb"
