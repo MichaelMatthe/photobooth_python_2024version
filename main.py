@@ -4,8 +4,8 @@ import sys
 import os
 from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton, QLabel, QVBoxLayout,
                              QHBoxLayout, QStackedLayout, QDialog, QSizePolicy)
-from PyQt5.QtGui import QPixmap, QScreen, QFont, QPainter, QPen, QColor
-from PyQt5.QtCore import Qt, QTime, QTimer, pyqtSignal, QThreadPool, QRunnable, QObject
+from PyQt5.QtGui import QPixmap, QScreen, QFont, QPainter, QPen, QColor, QFontDatabase
+from PyQt5.QtCore import Qt, QTime, QTimer, pyqtSignal, QThreadPool, QRunnable, QObject, QSize, QRect
 
 
 class PhotoBoothApp(QWidget):
@@ -16,12 +16,21 @@ class PhotoBoothApp(QWidget):
 
     def initUI(self):
         self.setWindowTitle('Photobooth')
+
+        self.main_layout_overlay = QStackedLayout()
+
+        self.white_widget = QWidget()
+        self.white_widget.setStyleSheet('background-color: white;')
+        self.main_widget = QWidget()
+        self.main_layout_overlay.addWidget(self.main_widget)
+        self.main_layout_overlay.addWidget(self.white_widget)
         main_layout = QVBoxLayout()
+        self.main_widget.setLayout(main_layout)
 
         main_layout.addWidget(self.create_title_label(), stretch=1)
         main_layout.addLayout(self.create_main_layout(), stretch=7)
 
-        self.setLayout(main_layout)
+        self.setLayout(self.main_layout_overlay)
         self.resize_app()
         self.apply_stylesheet()
 
@@ -72,12 +81,10 @@ class PhotoBoothApp(QWidget):
             QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.image_label.setAlignment(Qt.AlignCenter)
 
-        self.white_image_placeholder = QLabel("Loading", self)
+        self.white_image_placeholder = QLabel("Loading...", self)
         self.white_image_placeholder.setSizePolicy(
             QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.white_image_placeholder.setAlignment(Qt.AlignCenter)
-        self.white_image_placeholder.setStyleSheet(
-            "background-color: lightblue;")
 
         self.countdown_widget_wrapper = QWidget()
         countdown_widget_wrapper_layout = QVBoxLayout()
@@ -110,6 +117,7 @@ class PhotoBoothApp(QWidget):
         self.countdown_widget.start_countdown()
 
     def on_countdown_finished(self):
+        self.main_layout_overlay.setCurrentWidget(self.white_widget)
         self.image_widget_layout.setCurrentWidget(self.white_image_placeholder)
         self.take_picture_signals = TakePictureSignals()
         picture_task = TakePictureTask(self.take_picture_signals)
@@ -120,8 +128,29 @@ class PhotoBoothApp(QWidget):
         if image_path:
             pixmap = QPixmap(image_path).scaled(
                 int(1080 * 0.95), int(587 * 0.95), Qt.KeepAspectRatio)
-            self.image_label.setPixmap(pixmap)
+
+            border_width = 10
+            # Create a new pixmap with the border
+            size = pixmap.size() + QSize(2 * border_width, 2 * border_width)
+            bordered_pixmap = QPixmap(size)
+            # Fill with white color
+            bordered_pixmap.fill(QColor(255, 255, 255))
+
+            painter = QPainter(bordered_pixmap)
+
+            # Draw the original pixmap onto the new one
+            painter.drawPixmap(border_width, border_width, pixmap)
+
+            # Draw the border
+            border_rect = QRect(0, 0, size.width(), size.height())
+            painter.setPen(QColor(255, 255, 255))  # White border color
+            painter.drawRect(border_rect)  # Draw border around the pixmap
+
+            painter.end()
+
+            self.image_label.setPixmap(bordered_pixmap)
             self.image_widget_layout.setCurrentWidget(self.image_label)
+            self.main_layout_overlay.setCurrentWidget(self.main_widget)
 
     def print_current_image(self):
         image_path = self.image_label.pixmap().cacheKey()
@@ -186,21 +215,20 @@ class CountdownWidget(QWidget):
         radius = min(rect.width(), rect.height()) // 2 - 10
 
         painter.setPen(QPen(Qt.black, 2))
-        painter.setBrush(QColor(0, 0, 0))
+        # painter.setBrush(QColor(0, 0, 0))
         painter.drawEllipse(center, radius, radius)
 
         elapsed_ms = self.elapsed_time.elapsed()
         if elapsed_ms <= self.total_seconds * 1000:
             angle = int(360 * (elapsed_ms / (self.total_seconds * 1000)))
-            painter.setBrush(QColor(90, 0, 0))
+            painter.setBrush(QColor(255, 255, 224))
+            painter.setPen(Qt.NoPen)
             painter.drawPie(rect.adjusted(10, 10, -10, -10),
                             90 * 16, -angle * 16)
 
         remaining_seconds = max(0, self.total_seconds - elapsed_ms // 1000)
-        painter.setFont(QFont('Arial', 72, QFont.Bold))
+        painter.setFont(QFont('Bungee', 144, QFont.Bold))
         painter.setPen(QPen(Qt.black, 8))
-        painter.drawText(rect, Qt.AlignCenter, str(remaining_seconds))
-        painter.setPen(QPen(Qt.white, 3))
         painter.drawText(rect, Qt.AlignCenter, str(remaining_seconds))
 
 
@@ -208,6 +236,7 @@ if __name__ == '__main__':
     os.environ["XDG_SESSION_TYPE"] = "xcb"
 
     app = QApplication(sys.argv)
+    QFontDatabase.addApplicationFont("fonts/Bungee-Regular.ttf")
     window = PhotoBoothApp()
     window.show()
     sys.exit(app.exec_())

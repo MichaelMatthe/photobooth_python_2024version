@@ -1,26 +1,29 @@
 QWidget {
-    background-color: lightblue;
+    background-color: rgb(128, 0, 32);
 }
 
 QPushButton {
-    background-color: #800000;  /* Bordeaux red */
-    color: white;
+    background-color: rgb(255, 255, 224);
+    color: #000000;
     font-weight: bold;
+    font-family: 'Bungee';
+    font-size: 20px;
     border: none;
     border-radius: 15px;
-    padding: 10px 20px;
+    padding: 20px 40px;
 }
 
 QPushButton:hover {
-    background-color: #a00000;  /* Slightly lighter red for hover effect */
+    background-color: #FFFACD;
 }
 
 QPushButton:pressed {
-    background-color: #600000;  /* Slightly darker red for pressed effect */
+    background-color: #FFF8DC;
 }
 
 QLabel {
-    color: white;
-    font-size: x-large;
+    color: #FFFFE0;
+    font-family: 'Bungee';
+    font-size: 80px;
     font-weight: bold;
 }
