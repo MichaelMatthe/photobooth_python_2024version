@@ -233,7 +233,7 @@ class CountdownWidget(QWidget):
 
     def __init__(self):
         super().__init__()
-        self.total_seconds = 2
+        self.total_seconds = 4
         self.update_interval = 1000 // 60  # 60 updates per second
 
         self.timer = QTimer(self)
