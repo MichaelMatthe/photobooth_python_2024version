@@ -38,6 +38,10 @@ s
 
 Connect camera and printer.
 
+Camera:
+
+Aperture / Blende: 8, Belichtungszeit: 1 / 100, ISO 100, Abstand: ~3,8m
+
 Selphy CP1300:
 
 WLAN-Einstellungen > Verbindungsmethode > Direkte Verbindung > Kennw. Einst. (Ein) > Home
