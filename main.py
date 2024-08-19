@@ -158,7 +158,7 @@ class PhotoBoothApp(QWidget):
             painter.drawRect(border_rect)  # Draw border around the pixmap
 
             painter.end()
-            
+
             self.image_label.setPixmap(pixmap)
             self.image_widget_layout.setCurrentWidget(self.image_label)
             self.main_layout_overlay.setCurrentWidget(self.main_widget)
@@ -197,7 +197,14 @@ class PhotoBoothApp(QWidget):
     def print_current_image(self):
         image_path = self.image_label.pixmap().cacheKey()
         if image_path:
-            printer.print(image_path)
+            printer.print_image(image_path)
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Information)
+            msg.setWindowTitle("Drucken")
+            msg.setText("Bild wird gedruckt!")
+    
+            # Display the message box
+            msg.exec_()
 
     def show_email_dialog(self):
         dialog = EmailDialog(self)

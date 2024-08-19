@@ -1,13 +1,12 @@
 import subprocess
 
 
-def print(image_path, test_mode=False):
+def print_image(image_path, test_mode=False):
     if test_mode:
         print("Test Mode!")
         return
 
     try:
-        # Find the process IDs of running gphoto2 processes
         result = subprocess.run(["lp", "-o", "MediaType=photo", "-o", "PageSize=4x6.bl", image_path],
                                 capture_output=True, text=True)
 
