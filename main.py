@@ -158,6 +158,10 @@ class PhotoBoothApp(QWidget):
             painter.drawRect(border_rect)  # Draw border around the pixmap
 
             painter.end()
+            
+            self.image_label.setPixmap(pixmap)
+            self.image_widget_layout.setCurrentWidget(self.image_label)
+            self.main_layout_overlay.setCurrentWidget(self.main_widget)
         else:
 
             pixmap = QPixmap(1080, 587)
