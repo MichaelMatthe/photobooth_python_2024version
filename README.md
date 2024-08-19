@@ -38,13 +38,11 @@ s
 
 Connect camera and printer.
 
-Install printer drivers (SELPHY-C1300):
+Selphy CP1300:
 
-```
-sudo apt install printer-driver-gutenprint
-```
+WLAN-Einstellungen > Verbindungsmethode > Direkte Verbindung > Kennw. Einst. (Ein) > Home
 
-Settings > Printers > Printer Details > Select from Database... > Choose correct model
+On Ubuntu:
 
 Set the correct printer as the default printer. (Settings > Printers > ... "Use Printer by Default")
 
