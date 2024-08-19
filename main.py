@@ -37,6 +37,8 @@ class PhotoBoothApp(QWidget):
         self.resize_app()
         self.apply_stylesheet()
 
+        self.current_image_path = ""
+
     def create_title_label(self):
         title_label = QLabel('Photobooth')
         title_label.setObjectName('titleLable')
@@ -136,6 +138,7 @@ class PhotoBoothApp(QWidget):
         self.picture_button.setEnabled(True)
         self.mailing_list_button.setEnabled(True)
         if image_path:
+            self.current_image_path = image_path
             self.print_button.setEnabled(True)
             pixmap = QPixmap(image_path).scaled(
                 int(1080 * 0.95), int(587 * 0.95), Qt.KeepAspectRatio)
@@ -163,6 +166,7 @@ class PhotoBoothApp(QWidget):
             self.image_widget_layout.setCurrentWidget(self.image_label)
             self.main_layout_overlay.setCurrentWidget(self.main_widget)
         else:
+            self.current_image_path = ""
 
             pixmap = QPixmap(1080, 587)
             pixmap.fill(Qt.white)  # Fill the pixmap with a white background
@@ -195,9 +199,8 @@ class PhotoBoothApp(QWidget):
             
 
     def print_current_image(self):
-        image_path = self.image_label.pixmap().cacheKey()
-        if image_path:
-            printer.print_image(image_path)
+        if self.current_image_path:
+            printer.print_image(self.current_image_path)
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Information)
             msg.setWindowTitle("Drucken")
@@ -205,6 +208,8 @@ class PhotoBoothApp(QWidget):
     
             # Display the message box
             msg.exec_()
+        else:
+            print("no picture in current path")
 
     def show_email_dialog(self):
         dialog = EmailDialog(self)
