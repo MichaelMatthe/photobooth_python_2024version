@@ -21,6 +21,10 @@ QPushButton:pressed {
     background-color: #FFF8DC;
 }
 
+QPushButton:disabled {
+    background-color: #474747;
+}
+
 QLabel#titleLable {
     color: #FFFFE0;
     font-family: 'Bungee';

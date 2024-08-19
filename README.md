@@ -36,7 +36,17 @@ sudo apt install libxkbcommon-x11-0
 s
 ## Hardware:
 
-Connect camera and printer, set the correct printer as the default printer. (Settings > Printers > ... "Use Printer by Default")
+Connect camera and printer.
+
+Install printer drivers (SELPHY-C1300):
+
+```
+sudo apt install printer-driver-gutenprint
+```
+
+Settings > Printers > Printer Details > Select from Database... > Choose correct model
+
+Set the correct printer as the default printer. (Settings > Printers > ... "Use Printer by Default")
 
 ## Run application
 

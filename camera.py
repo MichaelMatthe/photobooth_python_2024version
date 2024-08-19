@@ -75,9 +75,11 @@ def capture_image_and_download():
         return new_file_path
     except subprocess.CalledProcessError:
         print("process error")
+        raise Exception("Camera Error")
     except Exception as e:
         # TODO handle no picture taken error!
         print(f"An error occurred: {e}")
+        raise Exception("Camera Error")
 
 
 def clear_images_on_camera():

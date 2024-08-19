@@ -57,20 +57,21 @@ class PhotoBoothApp(QWidget):
         return row_layout
 
     def create_button_column(self):
-        button_col_layout = QVBoxLayout()
-        picture_button = QPushButton('Bild machen')
-        picture_button.clicked.connect(self.on_picture_button_click)
-        button_col_layout.addWidget(picture_button)
+        self.button_col_layout = QVBoxLayout()
+        self.picture_button = QPushButton('Bild machen')
+        self.picture_button.clicked.connect(self.on_picture_button_click)
+        self.button_col_layout.addWidget(self.picture_button)
 
-        print_button = QPushButton('Drucken')
-        print_button.clicked.connect(self.print_current_image)
-        button_col_layout.addWidget(print_button)
+        self.print_button = QPushButton('Drucken')
+        self.print_button.clicked.connect(self.print_current_image)
+        self.button_col_layout.addWidget(self.print_button)
+        self.print_button.setEnabled(False)
 
-        mailing_list_button = QPushButton('Mailing List')
-        mailing_list_button.clicked.connect(self.show_email_dialog)
-        button_col_layout.addWidget(mailing_list_button)
+        self.mailing_list_button = QPushButton('Mailing List')
+        self.mailing_list_button.clicked.connect(self.show_email_dialog)
+        self.button_col_layout.addWidget(self.mailing_list_button)
 
-        return button_col_layout
+        return self.button_col_layout
 
     def create_image_layout(self):
         image_layout = QStackedLayout()
@@ -116,6 +117,9 @@ class PhotoBoothApp(QWidget):
             print("Stylesheet file 'style.css' not found.")
 
     def on_picture_button_click(self):
+        self.picture_button.setEnabled(False)
+        self.print_button.setEnabled(False)
+        self.mailing_list_button.setEnabled(False)
         self.image_widget_layout.setCurrentWidget(
             self.countdown_widget_wrapper)
         self.countdown_widget.start_countdown()
@@ -129,7 +133,10 @@ class PhotoBoothApp(QWidget):
         self.thread_pool.start(picture_task)
 
     def display_image(self, image_path):
+        self.picture_button.setEnabled(True)
+        self.mailing_list_button.setEnabled(True)
         if image_path:
+            self.print_button.setEnabled(True)
             pixmap = QPixmap(image_path).scaled(
                 int(1080 * 0.95), int(587 * 0.95), Qt.KeepAspectRatio)
 
@@ -151,10 +158,37 @@ class PhotoBoothApp(QWidget):
             painter.drawRect(border_rect)  # Draw border around the pixmap
 
             painter.end()
+        else:
 
-            self.image_label.setPixmap(bordered_pixmap)
+            pixmap = QPixmap(1080, 587)
+            pixmap.fill(Qt.white)  # Fill the pixmap with a white background
+
+            # Draw text on the QPixmap
+            painter = QPainter(pixmap)
+            painter.setPen(QColor(Qt.black))
+            font = QFont('Bungee', 40)
+            painter.setFont(font)
+            
+            # Calculate the text position
+            text = "Kamerafehler"
+            text_rect = painter.boundingRect(pixmap.rect(), Qt.AlignCenter, text)
+            
+            # Draw the text in the center
+            painter.drawText(text_rect, Qt.AlignCenter, text)
+            painter.end()
+
+            self.image_label.setPixmap(pixmap)
             self.image_widget_layout.setCurrentWidget(self.image_label)
             self.main_layout_overlay.setCurrentWidget(self.main_widget)
+
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Information)
+            msg.setWindowTitle("Kamerafehler")
+            msg.setText("- Leerer Kamerakku?\n- Leerer Blitzakku?\n- Kamera nicht verbunden?")
+    
+            # Display the message box
+            msg.exec_()
+            
 
     def print_current_image(self):
         image_path = self.image_label.pixmap().cacheKey()
@@ -199,7 +233,7 @@ class CountdownWidget(QWidget):
 
     def __init__(self):
         super().__init__()
-        self.total_seconds = 4
+        self.total_seconds = 2
         self.update_interval = 1000 // 60  # 60 updates per second
 
         self.timer = QTimer(self)
